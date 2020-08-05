@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"regexp"
@@ -24,7 +23,6 @@ func My() (net.IP, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println(string(b))
 	m := re.FindSubmatch(b)
 	if len(m) == 0 {
 		return nil, errors.New("my ip not found on page")
