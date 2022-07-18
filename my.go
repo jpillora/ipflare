@@ -9,7 +9,7 @@ import (
 	"regexp"
 )
 
-var re = regexp.MustCompile(`<span>Your IP</span>: ([a-f0-9\.:]+)</span>`)
+var re = regexp.MustCompile(`id="cf-footer-ip">([a-f0-9\.:]+)</span>`)
 
 //My IP address, according to Cloudflare.
 //Can be either IPv4 or IPv6.
