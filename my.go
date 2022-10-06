@@ -6,15 +6,13 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"regexp"
+	"strings"
 )
 
-var re = regexp.MustCompile(`id="cf-footer-ip">([a-f0-9\.:]+)</span>`)
-
-//My IP address, according to Cloudflare.
-//Can be either IPv4 or IPv6.
+// My IP address, according to Cloudflare.
+// Can be either IPv4 or IPv6.
 func My() (net.IP, error) {
-	resp, err := http.Get("https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/")
+	resp, err := http.Get("https://cloudflare.com/cdn-cgi/trace")
 	if err != nil {
 		return nil, err
 	}
@@ -23,14 +21,21 @@ func My() (net.IP, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := re.FindSubmatch(b)
-	if len(m) == 0 {
-		return nil, errors.New("my ip not found on page")
+	for _, line := range strings.Split(string(b), "\n") {
+		kv := strings.SplitN(line, "=", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		k := kv[0]
+		v := kv[1]
+		if k != "ip" {
+			continue
+		}
+		ip := net.ParseIP(v)
+		if ip == nil {
+			return nil, fmt.Errorf("my ip invalid (%s)", v)
+		}
+		return ip, nil
 	}
-	s := string(m[1])
-	ip := net.ParseIP(s)
-	if ip == nil {
-		return nil, fmt.Errorf("my ip invalid (%s)", s)
-	}
-	return ip, nil
+	return nil, errors.New("my ip not found on page")
 }
